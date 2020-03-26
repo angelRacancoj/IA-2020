@@ -13,87 +13,13 @@ public class AgenteVuelos {
     final double alpha = 0.5;
     final double roo = 0.6;
 
-    LinkedList<Destino> destinos = new LinkedList<>();
+    LinkedList<Destino> destinos;
     LinkedList<Destino> destinosDisponibles = new LinkedList<>();
 
     LinkedList<recorridoHormiga> recorridosCortos = new LinkedList<>();
 
-    public static void main(String[] args) {
-        AgenteVuelos agenteV = new AgenteVuelos();
-
-        agenteV.startData();
-//        agenteV.recorrido("Guatemala", "EEUU");
-//        agenteV.algoritmoHormigas("Guatemala", "EEUU");
-        agenteV.algoritmoHormigas("Guatemala", "Chile");
-    }
-
-    public Destino findDestino(String name) {
-        for (Destino destino : destinos) {
-            if (destino.getName().replaceAll(" ", "").equalsIgnoreCase(name.replaceAll(" ", ""))) {
-                return destino;
-            }
-        }
-        return null;
-    }
-
-    public int findDestinoPosicion(String name) {
-        for (int i = 0; i < destinos.size(); i++) {
-            if (destinos.get(i).getName().equalsIgnoreCase(name)) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    public void recorrido(String inicio, String fin) {
-        if (findDestino(inicio) != null) {
-            for (Route rute : findDestino(inicio).getRutes()) {
-                if (!rute.destino.routes.isEmpty()) {
-                    System.out.print(findDestino(inicio).Name + "->");
-                    recorrido(rute.destino.Name, fin);
-                } else {
-                    if (rute.destino.Name.equalsIgnoreCase(fin)) {
-                        System.out.println(rute.destino.Name);
-                    }
-                }
-            }
-        }
-    }
-
-    public void startData() {
-        destinos.add(new Destino("Guatemala"));
-        destinos.add(new Destino("Mexico"));
-        destinos.add(new Destino("El Salvador"));
-        destinos.add(new Destino("Nicaragua"));
-        destinos.add(new Destino("Honduras"));
-        destinos.add(new Destino("Costa Rica"));
-        destinos.add(new Destino("EEUU"));
-        destinos.add(new Destino("Colombia"));
-        destinos.add(new Destino("Peru"));
-        destinos.add(new Destino("Argentina"));
-        destinos.add(new Destino("Chile"));
-
-        findDestino("Guatemala").addRoute(new Route(findDestino("Guatemala"), findDestino("Mexico"), 120, 45));
-        findDestino("Guatemala").addRoute(new Route(findDestino("Guatemala"), findDestino("El Salvador"), 60, 90));
-        findDestino("El Salvador").addRoute(new Route(findDestino("El Salvador"), findDestino("Nicaragua"), 60, 60));
-        findDestino("El Salvador").addRoute(new Route(findDestino("El Salvador"), findDestino("Honduras"), 60, 60));
-        findDestino("El Salvador").addRoute(new Route(findDestino("El Salvador"), findDestino("Costa Rica"), 60, 90));
-        findDestino("El Salvador").addRoute(new Route(findDestino("El Salvador"), findDestino("EEUU"), 360, 90));
-        findDestino("El Salvador").addRoute(new Route(findDestino("El Salvador"), findDestino("Colombia"), 120, 90));
-        findDestino("Colombia").addRoute(new Route(findDestino("Colombia"), findDestino("Peru"), 120, 90));
-        findDestino("Colombia").addRoute(new Route(findDestino("Colombia"), findDestino("Argentina"), 210, 105));
-        findDestino("Colombia").addRoute(new Route(findDestino("Colombia"), findDestino("Chile"), 210, 120));
-        findDestino("Colombia").addRoute(new Route(findDestino("Colombia"), findDestino("EEUU"), 480, 180));
-        findDestino("Argentina").addRoute(new Route(findDestino("Argentina"), findDestino("Chile"), 45, 45));
-        findDestino("Mexico").addRoute(new Route(findDestino("Mexico"), findDestino("Nicaragua"), 120, 30));
-        findDestino("Mexico").addRoute(new Route(findDestino("Mexico"), findDestino("Honduras"), 120, 30));
-        findDestino("Mexico").addRoute(new Route(findDestino("Mexico"), findDestino("Costa Rica"), 135, 30));
-        findDestino("Mexico").addRoute(new Route(findDestino("Mexico"), findDestino("Colombia"), 150, 60));
-        findDestino("Mexico").addRoute(new Route(findDestino("Mexico"), findDestino("EEUU"), 210, 180));
-
-//        for (Destino destino : destinos) {
-//            destino.PrintMe();
-//        }
+    public AgenteVuelos(LinkedList<Destino> destinos) {
+        this.destinos = destinos;
     }
 
     public void algoritmoHormigas(String inicio, String fin) {
@@ -110,16 +36,16 @@ public class AgenteVuelos {
                     recorridoHormiga caminoHormiga = new recorridoHormiga();
                     Destino destinoActual = findDestino(inicio);
 
-                    while (!destinoActual.getName().equalsIgnoreCase(fin)) {
+                    while (!destinoActual.getName().equalsIgnoreCase(fin) && !destinoActual.getRutes().isEmpty()) {
                         eliminarDestinoActual(destinoActual, destinosDisponibles);
                         if (!destinosDisponibles.isEmpty()) {
                             Route routeAux = probabilidad(destinoActual, fin);
                             caminoHormiga.sumarLongitudCamino(routeAux.tiempoVuelo);
-                            
+
                             if (routeAux.getDestino().getName().equalsIgnoreCase(fin)) {
-                            caminoHormiga.sumarLongitudCamino(routeAux.tiempoEspera);
+                                caminoHormiga.sumarLongitudCamino(routeAux.tiempoEspera);
                             }
-                            
+
                             caminoHormiga.agregarRecorrido(routeAux);
                             destinoActual = routeAux.getDestino();
                         }
@@ -154,10 +80,10 @@ public class AgenteVuelos {
     }
 
     private recorridoHormiga obtenerMejorRecorrido(LinkedList<recorridoHormiga> lista) {
-        double mejor = 0;
-        recorridoHormiga mejorR = null;
+        double mejor = lista.getFirst().getLongitud();
+        recorridoHormiga mejorR = lista.getFirst();
         for (recorridoHormiga listaAux : lista) {
-            if (listaAux.getLongitud() > mejor) {
+            if (listaAux.getLongitud() < mejor) {
                 mejor = listaAux.getLongitud();
                 mejorR = listaAux;
             }
@@ -215,4 +141,36 @@ public class AgenteVuelos {
         return false;
     }
 
+    public Destino findDestino(String name) {
+        for (Destino destino : destinos) {
+            if (destino.getName().replaceAll(" ", "").equalsIgnoreCase(name.replaceAll(" ", ""))) {
+                return destino;
+            }
+        }
+        return null;
+    }
+
+    public int findDestinoPosicion(String name) {
+        for (int i = 0; i < destinos.size(); i++) {
+            if (destinos.get(i).getName().equalsIgnoreCase(name)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public void recorrido(String inicio, String fin) {
+        if (findDestino(inicio) != null) {
+            for (Route rute : findDestino(inicio).getRutes()) {
+                if (!rute.destino.routes.isEmpty()) {
+                    System.out.print(findDestino(inicio).Name + "->");
+                    recorrido(rute.destino.Name, fin);
+                } else {
+                    if (rute.destino.Name.equalsIgnoreCase(fin)) {
+                        System.out.println(rute.destino.Name);
+                    }
+                }
+            }
+        }
+    }
 }
